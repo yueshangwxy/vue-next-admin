@@ -159,7 +159,6 @@
   // 过滤后的树数据（基于搜索）
   const filteredTreeData = computed(() => {
     if (!searchText.value) return treeData.value
-    const result = []
     const search = searchText.value.toLowerCase()
     const traverse = (nodes, parentMatched = false) => {
       return nodes.map(node => {
