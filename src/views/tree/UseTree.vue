@@ -4,9 +4,8 @@
     <h1>树形组件使用示例</h1>
     <div class="popup">
       <TreeComponent 
-        v-show="showTree"
-        v-model="selectedItems"
-        @update:modelValue="handleSelectionChange"
+        ref="treeComponentRef"
+        v-model="showPopup"
         @confirm="handleConfirm"
       />
     </div>
@@ -21,23 +20,24 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import TreeComponent from './components/TreeComponent.vue'
 
 const selectedItems = ref([])
 
-const showTree = ref(false)
+const showPopup = ref(false)
 const toggleShowTree = () => {
-  showTree.value = !showTree.value
+  showPopup.value = !showPopup.value
 }
-const handleSelectionChange = (value) => {
-  selectedItems.value = value
-  console.info('选中项发生变化:', value)
-}
+const treeComponentRef = ref()
 
 const handleConfirm = (selectedNodes) => {
+  showPopup.value = false
   console.info('确认选择，最后一个全选节点:', selectedNodes)
 }
+onMounted(() => {
+  treeComponentRef.value?.loadData({})
+})
 </script>
 
 <style>

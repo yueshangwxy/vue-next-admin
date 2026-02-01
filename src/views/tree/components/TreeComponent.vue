@@ -1,14 +1,16 @@
 <template>
-  <div class="tree-component">
-    <input v-model="searchText" placeholder="搜索节点..." class="search-input" />
-    <div class="tree-root">
-      <tree-node v-for="node in filteredTreeData" :key="node.id" :node="node" :selected-nodes="selectedNodes"
-        @toggle-select="toggleSelect" @toggle-expand="toggleExpand" />
-    </div>
-    <div class="button-container">
-      <div class="button-group">
-        <div @click="resetSelection" class="reset-btn">重置</div>
-        <div @click="confirmSelection" class="confirm-btn">确认</div>
+  <div class="tree-container">
+    <div class="tree-component" v-if="showPopup">
+      <input v-model="searchText" placeholder="搜索节点..." class="search-input" />
+      <div class="tree-root">
+        <tree-node v-for="node in filteredTreeData" :key="node.id" :node="node" :selected-nodes="selectedNodes"
+          @toggle-select="toggleSelect" @toggle-expand="toggleExpand" />
+      </div>
+      <div class="button-container">
+        <div class="button-group">
+          <div @click="resetSelection" class="reset-btn">重置</div>
+          <div @click="confirmSelection" class="confirm-btn">确认</div>
+        </div>
       </div>
     </div>
   </div>
@@ -18,25 +20,17 @@
   import {
     ref,
     computed,
-    watch,
-    onMounted
+    watch
   } from 'vue'
   import TreeNode from './TreeNode.vue'
   import {
     fetchTreeData
   } from './data'
 
-  // 接收父组件传递的数据
-  const props = defineProps({
-    modelValue: {
-      type: Array,
-      default: () => []
-    }
-  })
+  const showPopup = defineModel()
 
   // 定义事件
-  const emit = defineEmits(['update:modelValue', 'confirm'])
-
+  const emit = defineEmits(['confirm'])
   // 搜索文本
   const searchText = ref('')
 
@@ -44,24 +38,25 @@
   const treeData = ref([])
 
   // 选中节点ID集合（仅包含全选节点，不包含半选节点）
-  const selectedNodes = ref(new Set(props.modelValue))
+  const selectedNodes = ref(new Set([]))
 
   // 存储被选中的最后一级节点对象
   const selectedLastLevelNodes = ref([])
 
   // 加载数据
-  const loadData = async () => {
+  const loadData = async (params) => {
     try {
       treeData.value = fetchTreeData()
+      resetSelection()
       // 初始化时检查父节点状态
       // initializeParentStates(treeData.value)
       // // 初始化时更新选中的最后一级节点
       // updateSelectedLastLevelNodes()
     } catch (error) {
-      console.info('加载数据失败:', error)
+      console.error('加载数据失败:', error)
     }
   }
-
+  defineExpose({ loadData })
   // 初始化时检查并设置父节点状态
   const initializeParentStates = (nodes) => {
     // 先收集所有有子节点的节点（从叶子节点开始）
@@ -145,21 +140,14 @@
     selectedLastLevelNodes.value = getSelectedLastLevelNodes()
   }
 
-  // 初始化加载数据
-  onMounted(() => {
-    loadData()
-  })
-
   // 监听选中变化并触发更新
   watch(selectedNodes.value, () => {
     updateSelectedLastLevelNodes()
-    emit('update:modelValue', Array.from(selectedNodes.value))
   })
 
   // 过滤后的树数据（基于搜索）
   const filteredTreeData = computed(() => {
     if (!searchText.value) return treeData.value
-    const result = []
     const search = searchText.value.toLowerCase()
     const traverse = (nodes, parentMatched = false) => {
       return nodes.map(node => {
@@ -255,7 +243,6 @@
   // 确认选择
   const confirmSelection = () => {
     const lastLevelNodes = getSelectedLastLevelNodes()
-    console.info('被选中的最后一级节点:', lastLevelNodes)
     emit('confirm', lastLevelNodes)
   }
 
@@ -304,6 +291,7 @@
     justify-content: center;
     padding: 16px;
   }
+
   .button-group {
     width: 100%;
     max-width: 448px;
