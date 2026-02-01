@@ -63,6 +63,7 @@
 			</el-col>
 		</el-row>
 	</div>
+
 </template>
 
 <script setup lang="ts" name="home">
@@ -71,6 +72,7 @@ import * as echarts from 'echarts';
 import { storeToRefs } from 'pinia';
 import { useThemeConfig } from '/@/stores/themeConfig';
 import { useTagsViewRoutes } from '/@/stores/tagsViewRoutes';
+import UseTree from './UseTree.vue';
 
 // 定义变量内容
 const homeLineRef = ref();
